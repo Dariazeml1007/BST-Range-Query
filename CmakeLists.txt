@@ -1,0 +1,40 @@
+cmake_minimum_required(VERSION 3.16)
+project(BinaryTree LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Режимы: по умолчанию USER_INPUT, если ON - то TESTS
+option(RUN_TESTS "Run automated tests instead of user input" OFF)
+
+# Основное приложение
+add_executable(binary_tree
+    source/main.cpp
+    source/bin_tree.cpp
+    source/tree_dump.cpp
+)
+
+# Подключаем заголовки
+target_include_directories(binary_tree PRIVATE include)
+
+# Настройки компилятора
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(binary_tree PRIVATE -Wall -Wextra -Werror)
+    # Для отладки можно добавить: -g -O0
+endif()
+
+# Режим тестов
+if(RUN_TESTS)
+    target_compile_definitions(binary_tree PRIVATE RUN_TESTS)
+    message(STATUS "BinaryTree: TEST mode")
+else()
+    message(STATUS "BinaryTree: USER INPUT mode")
+endif()
+
+# Опционально: если нужен Graphviz
+find_program(DOT_EXECUTABLE dot)
+if(DOT_EXECUTABLE)
+    message(STATUS "Graphviz found: ${DOT_EXECUTABLE}")
+else()
+    message(STATUS "Graphviz not found - tree dumping will create .dot files only")
+endif()
