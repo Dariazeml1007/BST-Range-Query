@@ -16,6 +16,13 @@ cmake --build build
 ```c
 cmake -B build -D RUN_TESTS=ON
 ```
+### Use dump :
+```c
+dot -Tpng tree.dot -o tree.png
+
+explorer.exe tree.png
+```
+
 ## Input and Output
 Enter commands sequentially:
 

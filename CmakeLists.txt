@@ -10,8 +10,6 @@ option(RUN_TESTS "Run automated tests instead of user input" OFF)
 # Основное приложение
 add_executable(binary_tree
     source/main.cpp
-    source/bin_tree.cpp
-    source/tree_dump.cpp
 )
 
 # Подключаем заголовки

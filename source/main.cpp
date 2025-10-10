@@ -1,13 +1,15 @@
-#include "bin_tree.hpp"
-#include "tree_dump.hpp"
 #include <iostream>
+
+#include "bin_tree.hpp"
+#include "utils.hpp"
+
 
 #ifdef RUN_TESTS
 void runTests()
 {
     std::cout << "=== TEST MODE ===\n";
 
-    MyTree tree;
+    Trees::MyTree<int> tree;
 
     // Test 1:
     tree.insert(10);
@@ -16,27 +18,24 @@ void runTests()
     tree.insert(3);
     tree.insert(7);
 
-    std::cout << "Тестовая вставка завершена\n";
+    std::cout << "Tests\n";
 
 
-    TreeDumper::dumpToFile(tree, "test_tree.dot");
-    std::cout << "Создан test_tree.dot\n";
+    tree.dumpToFile("test_tree.dot");
+    std::cout << "Created test_tree.dot\n";
 
     // Test 2:
-    int count1 = tree.countInRange(4, 12);
-    std::cout << "countInRange(4, 12) = " << count1 << "\n";
-
-    // Test 3:
-    tree.insert(20);
-    tree.insert(1);
-
-    int count2 = tree.countInRange(0, 100);
-    std::cout << "countInRange(0, 100) = " << count2 << "\n";
+    int count1 = range_query(tree, 4, 12);
+    if (count1 != 3)
+        std::cout << "Wrong answer, correct is 3, and we get" <<count1<<" \n";
+    else
+        std::cout <<"Correct \n";
 }
+
 #else
 void userInput()
 {
-    MyTree tree;
+    Trees::MyTree<int> tree;
     std::string command;
 
     while (std::cin >> command)
@@ -55,15 +54,15 @@ void userInput()
             int low, high;
             if (std::cin >> low >> high)
             {
-                int count = tree.countInRange(low, high);
+                int count = range_query(tree, low, high);
                 std::cout << count << " ";
             }
         }
         else if (command == "dump")
         {
 
-            TreeDumper::dumpToFile(tree, "tree.dot");
-            std::cout << "[DEBUG] Создан tree.dot\n";
+            tree.dumpToFile("tree.dot");
+            std::cout << "Created tree.dot\n";
         }
 
         else
