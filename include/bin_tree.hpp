@@ -1,8 +1,8 @@
 #pragma once
-#include <iostream> //std::string in dumpToFile
-#include <string> //filename in dumpToFile()
-#include <cstddef> //nullptr
-#include <fstream> //dumpToFile() - record in .dot file
+#include <string>      // для dumpToFile(std::string)
+#include <fstream>     // для std::ofstream
+#include <functional>  // для std::less<KeyT>
+#include <algorithm>   // для std::max в updateHeight
 
 namespace Trees
 {

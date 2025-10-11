@@ -14,11 +14,14 @@ int mydistance(Iterator start, Iterator end)
 }
 
 template <typename C, typename T>
-int range_query(const C& s, T fst, T snd)//Generic function for comparing my container and std::set
+int range_query(const C& s, T low, T high)//Generic function for comparing my container and std::set
 
 {
+    if (low >= high)
+        return 0;
+
     using itt = typename C::iterator;
-    itt start = s.lower_bound(fst);
-    itt fin = s.upper_bound(snd);
+    itt start = s.lower_bound(low);
+    itt fin = s.upper_bound(high);
     return mydistance(start, fin);
 }
