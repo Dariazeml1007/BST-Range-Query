@@ -1,27 +1,18 @@
-// utils.hpp
-#pragma once //multiple inclusion protection
-
-template<typename Iterator> //iterator argument for using various type
-int mydistance(Iterator start, Iterator end)
-{
-    int count = 0;
-    while (start != end)
-    {
-        ++count;
-        ++start;
-    }
-    return count;
-}
+#pragma once
+#include <set>
+#include <iterator>  // std::distance  std::iterator_traits
+#include "avl_tree.hpp"
 
 template <typename C, typename T>
-int range_query(const C& s, T low, T high)//Generic function for comparing my container and std::set
-
+typename std::iterator_traits<typename C::iterator>::difference_type
+range_query(const C& s, T low, T high)
 {
     if (low >= high)
         return 0;
 
-    using itt = typename C::iterator;
-    itt start = s.lower_bound(low);
-    itt fin = s.upper_bound(high);
-    return mydistance(start, fin);
+    auto start = s.lower_bound(low);
+    auto fin = s.upper_bound(high);
+
+    return std::distance(start, fin);
+
 }

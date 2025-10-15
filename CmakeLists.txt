@@ -4,10 +4,17 @@ project(BinaryTree LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Режимы: по умолчанию USER_INPUT, если ON - то TESTS
-option(RUN_TESTS "Run automated tests instead of user input" OFF)
+# Поиск Google Test
+find_package(GTest REQUIRED)
 
-# Основное приложение
+# ОБЩИЕ настройки компиляции
+set(COMMON_COMPILE_OPTIONS
+    $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wall>
+    $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wextra>
+    $<$<CXX_COMPILER_ID:MSVC>:/W4>
+)
+
+# Основное приложение (ВСЕГДА user mode)
 add_executable(binary_tree
     source/main.cpp
 )
@@ -15,24 +22,27 @@ add_executable(binary_tree
 # Подключаем заголовки
 target_include_directories(binary_tree PRIVATE include)
 
-# Настройки компилятора
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(binary_tree PRIVATE -Wall -Wextra -Werror)
-    # Для отладки можно добавить: -g -O0
-endif()
+# Применяем общие настройки компиляции
+target_compile_options(binary_tree PRIVATE ${COMMON_COMPILE_OPTIONS})
 
-# Режим тестов
-if(RUN_TESTS)
-    target_compile_definitions(binary_tree PRIVATE RUN_TESTS)
-    message(STATUS "BinaryTree: TEST mode")
-else()
-    message(STATUS "BinaryTree: USER INPUT mode")
-endif()
+# ОТДЕЛЬНЫЙ исполняемый файл для тестов
+add_executable(binary_tree_tests
+    tests/test_main.cpp
+    tests/test_avl_tree.cpp
+  # добавляем реализацию дерева для тестов
+)
 
-# Опционально: если нужен Graphviz
-find_program(DOT_EXECUTABLE dot)
-if(DOT_EXECUTABLE)
-    message(STATUS "Graphviz found: ${DOT_EXECUTABLE}")
-else()
-    message(STATUS "Graphviz not found - tree dumping will create .dot files only")
-endif()
+# Подключаем заголовки для тестов
+target_include_directories(binary_tree_tests PRIVATE include)
+
+# Линкуем Google Test к тестам
+target_link_libraries(binary_tree_tests PRIVATE GTest::gtest GTest::gtest_main)
+
+# Применяем общие настройки компиляции к тестам
+target_compile_options(binary_tree_tests PRIVATE ${COMMON_COMPILE_OPTIONS})
+
+# Автоматическое обнаружение тестов
+include(GoogleTest)
+gtest_discover_tests(binary_tree_tests)
+
+message(STATUS "BinaryTree: Built main app 'binary_tree' and tests 'binary_tree_tests'")

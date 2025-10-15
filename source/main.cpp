@@ -2,27 +2,8 @@
 #include <chrono>
 #include <set>
 
-#include "bin_tree.hpp"
+#include "avl_tree.hpp"
 #include "utils.hpp"
-
-
-#ifdef RUN_TESTS
-
-
-void testRangeQuery(Trees::MyTree<int>& tree, const std::string& test_name, int low, int high, int expected)
-{
-    int result = range_query(tree, low, high);
-    if (result == expected)
-    {
-        std::cout << " PASS: " << test_name << " (" << low << ", " << high
-                  << ") = " << result << "\n";
-    }
-    else
-    {
-        std::cout << " FAIL: " << test_name << " (" << low << ", " << high
-                  << ") = " << result << " expected " << expected << "\n";
-    }
-}
 
 void comparePerformance()
 {
@@ -67,26 +48,6 @@ void comparePerformance()
     std::cout << "std::set: " << std_time.count() << " ms\n";
 }
 
-void runTests()
-{
-    std::cout << "=== TEST MODE ===\n";
-
-    Trees::MyTree<int> tree;
-    tree.insert(10); tree.insert(20); tree.insert(30); tree.insert(40);
-
-    std::cout << "=== Testing range_query ===\n";
-    testRangeQuery(tree, "Basic range", 8, 31, 3);      // 10, 20
-    testRangeQuery(tree, "Empty range", 6, 9, 0);       // нет ключей
-    testRangeQuery(tree, "Wide range", 15, 40, 3);      // 20, 30, 40
-    testRangeQuery(tree, "Single element", 25, 35, 1);  // 30
-    testRangeQuery(tree, "Exact bounds", 10, 10, 0);    // строго > low
-
-    std::cout << "=== COMPARISON MODE ===\n";
-    comparePerformance();
-}
-
-
-#else
 void userInput()
 {
     Trees::MyTree<int> tree;
@@ -112,11 +73,18 @@ void userInput()
                 std::cout << count << " ";
             }
         }
-        else if (command == "dump")
+        else if (command == "dumpc")
         {
-
-            tree.dumpToFile("tree.dot");
-            std::cout << "Created tree.dot\n";
+            tree.dumpToStream(std::cout);
+        }
+        else if (command == "dumpf")
+        {
+            std::string filename;
+            if (std::cin >> filename)
+            {
+                tree.dumpToFile(filename);
+                std::cout << "Created " << filename << "\n";
+            }
         }
 
         else
@@ -127,14 +95,8 @@ void userInput()
     }
     std::cout << std::endl;
 }
-#endif
 
 int main() {
-#ifdef RUN_TESTS
-    runTests();
-#else
     userInput();
-#endif
     return 0;
 }
-

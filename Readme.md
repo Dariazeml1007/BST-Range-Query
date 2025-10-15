@@ -30,7 +30,9 @@ Enter commands sequentially:
 
 - q <low> <high> - Count elements where low < key <= high
 
-- dump - Generate tree visualization file
+- dumpf filename - Generate tree visualization file
+
+- dumpc  - Printing format Graphiz on  std::cout
 
 ##  Performance Comparison with std::set
 During testing on a dataset of 10,000 random elements, a performance comparison of range query operations was conducted between MyTree and the standard std::set. The results demonstrate high implementation efficiency:
