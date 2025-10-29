@@ -3,10 +3,11 @@
 #include <fstream>     // для std::ofstream
 #include <functional>  // для std::less<KeyT>
 #include <algorithm>   // для std::max в updateHeight
+#include <stack>
 
 namespace Trees
 {
-class TreeDumper;
+
 template<typename KeyT, typename Compare = std::less<KeyT>>
 class MyTree
 {
@@ -45,7 +46,7 @@ private:
     };
 
     Node* root;
-    [[no_unique_address]] Compare comp_; // 0 byte
+    [[no_unique_address]] Compare comp_; // 0 byte (think of it)
 
     Node* findNode(const KeyT& key) const
     {
@@ -131,12 +132,23 @@ private:
         return node;
     }
 
-    void clearRec(Node* node)
+   void clearRec(Node* node)
     {
-        if (node == nullptr) return;
-        clearRec(node->left);
-        clearRec(node->right);
-        delete node;
+        if (!node) return;
+
+        std::stack<Node*> nodes;
+        nodes.push(node);
+
+        while (!nodes.empty())
+        {
+            Node* current = nodes.top();
+            nodes.pop();
+
+            if (current->left) nodes.push(current->left);
+            if (current->right) nodes.push(current->right);
+
+            delete current;
+        }
     }
 
     Node* findMin(Node* node) const
@@ -145,15 +157,26 @@ private:
         return node;
     }
 
-    Node* findSuccessor(const Node* node) const
+   Node* findSuccessor(const Node* node) const
     {
-        if (node->right) return findMin(node->right);
-        Node* parent = node->parent;
-        while (parent && node == parent->right)
+        if (!node) return nullptr;
+
+        if (node->right)
         {
-            node = parent;
+            auto result = findMin(node->right);
+            return result;
+        }
+
+        Node* parent = node->parent;
+        const Node* current = node;
+
+
+        while (parent && current == parent->right)
+        {
+            current = parent;
             parent = parent->parent;
         }
+
         return parent;
     }
 
@@ -173,34 +196,36 @@ private:
                 current = current->right;
             }
         }
+
         return result;
     }
 
-  Node* findUpperBound(const KeyT& key) const
-  {
-      Node* current = root;
-      Node* result = nullptr;
-      while (current)
-      {
-          if (comp_(key, current->key)) // key < current->key
-          {
-              // current->key > key
-              result = current;
-              current = current->left;
-          }
-          else
-          {
-              current = current->right;
-          }
-      }
-      return result;
-  }
+    Node* findUpperBound(const KeyT& key) const
+    {
+        Node* current = root;
+        Node* result = nullptr;
+        while (current)
+        {
+            if (comp_(key, current->key)) // key < current->key
+            {
+
+                result = current;
+                current = current->left;
+            }
+            else
+            {
+                current = current->right;
+            }
+        }
+
+        return result;
+    }
 
     Node* insertRec(Node* node, const KeyT key, Node* parent, bool& inserted)
     {
         if (!node)
         {
-            inserted = true;  // элемент был вставлен
+            inserted = true;
             return new Node(key, parent);
         }
 
@@ -254,6 +279,7 @@ public:
         dumpEdges(os, root);
         os << "}\n";
     }
+
     void dumpToFile(const std::string& filename) const
     {
         std::ofstream file(filename);
@@ -261,47 +287,61 @@ public:
     }
 
     class iterator
+{
+private:
+    Node* current;
+    const MyTree* tree;
+
+public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = KeyT;
+    using difference_type = std::ptrdiff_t;
+    using pointer = const KeyT*;
+    using reference = const KeyT&;
+
+    iterator(Node* node = nullptr, const MyTree* t = nullptr)
+    : current(node), tree(t) {}
+
+
+    const KeyT& operator*() const { return current->key; }
+    const KeyT* operator->() const { return &current->key; }
+
+    iterator& operator++()
     {
-    private:
-        Node* current;
-        const MyTree *tree;
+        current = tree->findSuccessor(current);
+        return *this;
+    }
 
-    public:
+    iterator operator++(int)
+    {
+        iterator temp = *this;
+        ++(*this);
+        return temp;
+    }
 
-        using iterator_category = std::forward_iterator_tag;
-        using value_type = KeyT;
-        using difference_type = std::ptrdiff_t;
-        using pointer = KeyT*;
-        using reference = KeyT&;
+    bool operator==(const iterator& other) const
+    {
+        return current == other.current;
+    }
+
+    bool operator!=(const iterator& other) const
+    {
+        return current != other.current;
+    }
 
 
-         iterator(Node* node = nullptr, const MyTree* t = nullptr)
-        : current(node), tree(t) {}
+    template<typename Other>
+    bool operator==(const Other& other) const
+    {
+        return current == other.current;
+    }
 
-        const KeyT& operator*() const
-        {
-            return current->key;
-        }
-        iterator& operator++()
-        {
-            current = tree->findSuccessor(current);
-            return *this;
-        }
-        iterator operator++(int)
-        {
-            iterator temp = *this;
-            ++(*this);
-            return temp;
-        }
-        bool operator==(const iterator& other) const
-        {
-            return current == other.current;
-        }
-        bool operator!=(const iterator& other) const
-        {
-            return current != other.current;
-        }
-    };
+    template<typename Other>
+    bool operator!=(const Other& other) const
+    {
+        return current != other.current;
+    }
+};
 
      void clear()
      {
@@ -310,15 +350,12 @@ public:
 
     MyTree() : root(nullptr), comp_() {}
 
-    // Конструктор с компаратором
+
     MyTree(const Compare& comp) : root(nullptr), comp_(comp) {}
 
-    // Конструктор с move-компаратором
+
     MyTree(Compare&& comp) : root(nullptr), comp_(std::move(comp)) {}
 
-
-
-    friend class TreeDumper;
 
 
     Node* getRoot() const { return root; }
@@ -335,11 +372,18 @@ public:
 
     iterator begin() const
     {
-        return iterator(findMin(root));
+        Node* current = root;
+        while (current && current->left)
+        {
+            current = current->left;
+        }
+        return iterator(current, this);
     }
+
     iterator end() const
     {
-        return iterator(nullptr);
+
+        return iterator(nullptr, this);
     }
 
     iterator lower_bound(const KeyT& key) const
@@ -352,9 +396,9 @@ public:
         return iterator(findUpperBound(key));
     }
 
-    //Правило пяти
+    //Rule of 5
 
-    // 1. Конструктор копирования
+    // 1.
     MyTree(const MyTree& other)
     {
         root = copyRec(other.root, nullptr);
@@ -372,37 +416,36 @@ public:
 
         return new_node;
     }
-    //2.Копирующее присваивание
+    //2.
     MyTree& operator=(const MyTree& other)
     {
         if (this != &other)
-        {                    // защита от самоприсваивания
-            clearRec(root);                      // освобождаем старые данные
-            root = copyRec(other.root, nullptr); // копируем новые данные
-            comp_ = other.comp_;                 // копируем компаратор
+        {
+            clearRec(root);
+            root = copyRec(other.root, nullptr);
+            comp_ = other.comp_;
         }
         return *this;
     }
-    // 3. Move конструктор
+    // 3. Move
     MyTree(MyTree&& other) noexcept
     : root(other.root)
     , comp_(std::move(other.comp_))
     {
         other.root = nullptr;
     }
-    // 4. Move присваивание
-    MyTree& operator=(MyTree&& other) noexcept
+    // 4. Move
+   MyTree& operator=(MyTree&& other) noexcept
     {
         if (this != &other)
         {
-            clear();
-            root = other.root;
-            comp_ = std::move(other.comp_);
-            other.root = nullptr;
+            std::swap(root, other.root);
+            std::swap(comp_, other.comp_);
+
         }
         return *this;
     }
-    // 5. Деструктор
+    // 5. Destructer
     ~MyTree()
     {
         clearRec(root);
