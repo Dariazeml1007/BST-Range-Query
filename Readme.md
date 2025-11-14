@@ -6,7 +6,7 @@ A C++ implementation of a binary search tree with range query functionality, sup
 
 ### Build the project with user input:
 ```c
-cmake -B build -D RUN_TESTS=OFF
+cmake -B build
 
 cmake --build build
 

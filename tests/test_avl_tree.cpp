@@ -31,7 +31,7 @@ TEST(AVLTreeTest, EmptyTreeAndEdgeCases)
     tree.insert(15);
 
 
-    EXPECT_EQ(range_query(tree, 5, 10), 1);
+    EXPECT_EQ(range_query(tree, 5, 10), 2);
 
     EXPECT_EQ(range_query(tree, 9, 16), 2);
 }
