@@ -1,5 +1,5 @@
-#include <iostream>
 #include <chrono>
+#include <iostream>
 #include <set>
 
 #include "avl_tree.hpp"
@@ -12,7 +12,8 @@ void userInput()
 
     while (std::cin >> command)
     {
-        if (std::cin.eof()) break;
+        if (std::cin.eof())
+            break;
         if (command == "k")
         {
             int key;
@@ -34,26 +35,17 @@ void userInput()
         {
             tree.dumpToStream(std::cout);
         }
-        else if (command == "dumpf")
-        {
-            std::string filename;
-            if (std::cin >> filename)
-            {
-                tree.dumpToFile(filename);
-                std::cout << "Created " << filename << "\n";
-            }
-        }
 
         else
         {
             std::cout << "Wrong command - try \'k\' or \'q\' \n";
         }
-
     }
     std::cout << std::endl;
 }
 
-int main() {
+int main()
+{
     userInput();
     return 0;
 }

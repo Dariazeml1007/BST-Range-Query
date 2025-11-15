@@ -1,9 +1,9 @@
-#include <iostream>
-#include <chrono>
-#include <set>
-#include <random>
 #include "avl_tree.hpp"
 #include "utils.hpp"
+#include <chrono>
+#include <iostream>
+#include <random>
+#include <set>
 
 void comparePerformance()
 {
@@ -32,7 +32,6 @@ void comparePerformance()
     }
     auto end1 = std::chrono::high_resolution_clock::now();
 
-
     auto start2 = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < 1000; i++)
     {
@@ -42,12 +41,15 @@ void comparePerformance()
     }
     auto end2 = std::chrono::high_resolution_clock::now();
 
-    auto my_time = std::chrono::duration_cast<std::chrono::milliseconds>(end1 - start1);
-    auto std_time = std::chrono::duration_cast<std::chrono::milliseconds>(end2 - start2);
+    auto my_time =
+        std::chrono::duration_cast<std::chrono::milliseconds>(end1 - start1);
+    auto std_time =
+        std::chrono::duration_cast<std::chrono::milliseconds>(end2 - start2);
 
     std::cout << "MyTree: " << my_time.count() << " ms\n";
     std::cout << "std::set: " << std_time.count() << " ms\n";
-    std::cout << "Speed ratio: " << (double)std_time.count() / my_time.count() << "x\n";
+    std::cout << "Speed ratio: " << (double)std_time.count() / my_time.count()
+              << "x\n";
 }
 
 int main()

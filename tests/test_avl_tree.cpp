@@ -1,7 +1,7 @@
-#include <gtest/gtest.h>
-#include <set>
 #include "../include/avl_tree.hpp"
 #include "../include/utils.hpp"
+#include <gtest/gtest.h>
+#include <set>
 
 TEST(AVLTreeTest, ExactHomeworkExample)
 {
@@ -17,19 +17,17 @@ TEST(AVLTreeTest, ExactHomeworkExample)
     EXPECT_EQ(range_query(tree, 15, 40), 3);
 }
 
-
 TEST(AVLTreeTest, EmptyTreeAndEdgeCases)
 {
     Trees::MyTree<int, std::less<int>> tree;
 
-   EXPECT_EQ(range_query(tree, 1, 10), 0);
-   EXPECT_EQ(range_query(tree, 10, 5), 0);
-   EXPECT_EQ(range_query(tree, 5, 5), 0);
+    EXPECT_EQ(range_query(tree, 1, 10), 0);
+    EXPECT_EQ(range_query(tree, 10, 5), 0);
+    EXPECT_EQ(range_query(tree, 5, 5), 0);
 
     tree.insert(5);
     tree.insert(10);
     tree.insert(15);
-
 
     EXPECT_EQ(range_query(tree, 5, 10), 2);
 
