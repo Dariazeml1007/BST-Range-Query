@@ -1,25 +1,28 @@
 # BST Range Query
 
 A C++ implementation of a binary search tree with range query functionality, supporting key insertion and counting elements in specified ranges.
-
 ## Build and Run
 
-### Build the project with user input:
-```c
-cmake -B build
+### Build all targets:
 
+```bash
+cmake -B build
 cmake --build build
 
-./build/binary_tree
-```
-### Build the project with tests:
-```c
-cmake -B build -D RUN_TESTS=ON
-```
-### Use dump :
-```c
-dot -Tpng tree.dot -o tree.png
+Available targets:
 
+./build/binary_tree - Main interactive application
+
+./build/binary_tree_tests - Run unit tests
+
+./build/binary_tree_benchmarks - AVL tree performance benchmarks
+
+./build/set_benchmarks - std::set performance benchmarks
+```
+Use dump:
+
+```bash
+dot -Tpng tree.dot -o tree.png
 explorer.exe tree.png
 ```
 
@@ -29,8 +32,6 @@ Enter commands sequentially:
 - k  <key> - Insert a key into the tree
 
 - q <low> <high> - Count elements where low < key <= high
-
-- dumpf filename - Generate tree visualization file
 
 - dumpc  - Printing format Graphiz on  std::cout
 
