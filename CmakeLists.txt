@@ -33,11 +33,21 @@ target_link_libraries(binary_tree_tests PRIVATE GTest::gtest GTest::gtest_main)
 target_compile_options(binary_tree_tests PRIVATE ${COMMON_COMPILE_OPTIONS})
 
 add_executable(binary_tree_benchmarks
-    benchmarks/benchmark.cpp
+    benchmarks/benchmark_tree.cpp
 )
 
 target_include_directories(binary_tree_benchmarks PRIVATE include)
 target_compile_options(binary_tree_benchmarks PRIVATE ${COMMON_COMPILE_OPTIONS})
+
+
+add_executable(set_benchmarks
+    benchmarks/benchmark_set.cpp
+)
+
+
+target_include_directories(set_benchmarks PRIVATE include)
+target_compile_options(set_benchmarks PRIVATE ${COMMON_COMPILE_OPTIONS})
+
 
 # Автоматическое обнаружение тестов
 include(GoogleTest)
