@@ -14,7 +14,7 @@ private:
     Node* current;
 
 public:
-    using iterator_category = std::forward_iterator_tag;
+    using iterator_category = std::bidirectional_iterator_tag;
     using value_type = KeyT;
     using difference_type = std::ptrdiff_t;
     using pointer = const KeyT*;
@@ -43,6 +43,19 @@ public:
     {
         iterator temp = *this;
         ++(*this);
+        return temp;
+    }
+
+    iterator& operator--()
+    {
+        current = Node::findPredecessor(current);
+        return *this;
+    }
+
+    iterator operator--(int)
+    {
+        iterator temp = *this;
+        --(*this);
         return temp;
     }
 

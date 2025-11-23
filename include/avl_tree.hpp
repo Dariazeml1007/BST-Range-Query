@@ -18,9 +18,50 @@ public:
     using iterator = Trees::iterator<KeyT, Compare>;
     using difference_type = std::ptrdiff_t;
 
+    using const_iterator = iterator;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
 private:
     Node* root;
+    Node* min_node;
     [[no_unique_address]] Compare comp_; // 0 byte (think of it)
+
+    void updateMinNode()
+    {
+        if (!root)
+        {
+            min_node = nullptr;
+            return;
+        }
+
+        min_node = root;
+        while (min_node->left)
+        {
+            min_node = min_node->left;
+        }
+    }
+
+    static Node* copyRec(Node* other_node, Node* parent)
+    {
+        if (!other_node)
+            return nullptr;
+
+        Node* new_node = new Node(other_node->key, parent);
+        try
+        {
+            new_node->left = copyRec(other_node->left, new_node);
+            new_node->right = copyRec(other_node->right, new_node);
+            new_node->height_ = other_node->height_;
+        }
+        catch (...)
+        {
+            Node::clearRec(new_node);
+            throw;
+        }
+
+        return new_node;
+    }
 
     Node* findNode(const KeyT& key) const
     {
@@ -150,21 +191,15 @@ public:
         Node::clearRec(root);
     }
 
-    MyTree() : root(nullptr), comp_()
+    MyTree() : root(nullptr), min_node(nullptr), comp_()
     {
     }
-
-    MyTree(const Compare& comp) : root(nullptr), comp_(comp)
+    MyTree(const Compare& comp) : root(nullptr), min_node(nullptr), comp_(comp)
     {
     }
-
-    MyTree(Compare&& comp) : root(nullptr), comp_(std::move(comp))
+    MyTree(Compare&& comp)
+        : root(nullptr), min_node(nullptr), comp_(std::move(comp))
     {
-    }
-
-    Node* getRoot() const
-    {
-        return root;
     }
 
     std::pair<iterator, bool> insert(const KeyT& key)
@@ -173,22 +208,32 @@ public:
         root = insertRec(root, key, nullptr, inserted);
 
         Node* inserted_node = findNode(key);
+
+        if (inserted && (!min_node || comp_(key, min_node->key)))
+        {
+            min_node = inserted_node;
+        }
+
         return std::make_pair(iterator(inserted_node), inserted);
     }
 
     iterator begin() const
     {
-        Node* current = root;
-        while (current && current->left)
-        {
-            current = current->left;
-        }
-        return iterator(current);
+        return iterator(min_node); // O(1)!
     }
 
     iterator end() const
     {
         return iterator(nullptr);
+    }
+
+    reverse_iterator rbegin() const
+    {
+        return reverse_iterator(end());
+    }
+    reverse_iterator rend() const
+    {
+        return reverse_iterator(begin());
     }
 
     iterator lower_bound(const KeyT& key) const
@@ -203,55 +248,41 @@ public:
 
     // Rule of 5
 
-    // 1.
+    // 1. Copy constructor
     MyTree(const MyTree& other)
+        : root(copyRec(other.root, nullptr)), min_node(nullptr),
+          comp_(other.comp_)
     {
-        root = copyRec(other.root, nullptr);
-        comp_ = other.comp_;
+        updateMinNode();
     }
 
-    static Node* copyRec(Node* other_node, Node* parent)
-    {
-        if (!other_node)
-            return nullptr;
+    // 2. Move constructor
 
-        Node* new_node = new Node(other_node->key, parent);
-        new_node->left = copyRec(other_node->left, new_node);
-        new_node->right = copyRec(other_node->right, new_node);
-        new_node->height_ = other_node->height_;
-
-        return new_node;
-    }
-    // 2.
-    MyTree& operator=(const MyTree& other)
-    {
-        if (this != &other)
-        {
-            Node::clearRec(root);
-            root = copyRec(other.root, nullptr);
-            comp_ = other.comp_;
-        }
-        return *this;
-    }
-    // 3. Move
     MyTree(MyTree&& other) noexcept
-        : root(other.root), comp_(std::move(other.comp_))
+        : root(std::exchange(other.root, nullptr)),
+          min_node(std::exchange(other.min_node, nullptr)),
+          comp_(std::move(other.comp_))
     {
-        other.root = nullptr;
     }
-    // 4. Move
-    MyTree& operator=(MyTree&& other) noexcept
+
+    // 3.
+
+    MyTree& operator=(MyTree other) noexcept
     {
-        if (this != &other)
-        {
-            Node::clearRec(root);
-            root = other.root;
-            comp_ = std::move(other.comp_);
-            other.root = nullptr;
-        }
+        swap(*this, other);
         return *this;
     }
-    // 5. Destructer
+
+    // 4.
+    friend void swap(MyTree& first, MyTree& second) noexcept
+    {
+        using std::swap;
+        swap(first.root, second.root);
+        swap(first.min_node, second.min_node);
+        swap(first.comp_, second.comp_);
+    }
+
+    // 5.
     ~MyTree()
     {
         Node::clearRec(root);

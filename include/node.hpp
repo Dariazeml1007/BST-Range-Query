@@ -29,6 +29,7 @@ template <typename KeyT> struct Node
             return 0;
         return height(node->left) - height(node->right);
     }
+
     static void updateHeight(Node* node)
     {
         if (node)
@@ -172,6 +173,38 @@ template <typename KeyT> struct Node
         }
 
         return parent;
+    }
+
+    static Node* findPredecessor(const Node* node)
+    {
+        if (!node)
+            return nullptr;
+
+        if (node->left)
+        {
+
+            return findMax(node->left);
+        }
+
+        Node* parent = node->parent;
+        const Node* current = node;
+
+        while (parent && current == parent->left)
+        {
+            current = parent;
+            parent = parent->parent;
+        }
+
+        return parent;
+    }
+
+    static Node* findMax(Node* node)
+    {
+        while (node && node->right)
+        {
+            node = node->right;
+        }
+        return node;
     }
 };
 
