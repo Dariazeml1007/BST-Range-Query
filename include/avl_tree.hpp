@@ -26,6 +26,8 @@ private:
     Node* root;
     Node* min_node;
     [[no_unique_address]] Compare comp_; // 0 byte (think of it)
+    static_assert(std::is_nothrow_destructible_v<KeyT>,
+                  "KeyT must have noexcept destructor");
 
     void updateMinNode()
     {
@@ -56,7 +58,8 @@ private:
         }
         catch (...)
         {
-            Node::clearRec(new_node);
+
+            Node::rollbackDelete(new_node);
             throw;
         }
 
@@ -130,24 +133,58 @@ private:
         if (!node)
         {
             inserted = true;
-            return new Node(key, parent);
+            Node* new_node = nullptr;
+            try
+            {
+                new_node = new Node(key, parent);
+            }
+            catch (...)
+            {
+                inserted = false;
+                throw;
+            }
+            return new_node;
         }
+
+        Node* result = node;
 
         if (comp_(key, node->key))
         {
-            node->left = insertRec(node->left, key, node, inserted);
+            Node* old_left = node->left;
+            try
+            {
+                node->left = insertRec(node->left, key, node, inserted);
+                result = Node::balance(node);
+            }
+            catch (...)
+            {
+                node->left = old_left;
+                inserted = false;
+                throw;
+            }
         }
+
         else if (comp_(node->key, key))
         {
-            node->right = insertRec(node->right, key, node, inserted);
+            Node* old_right = node->right;
+            try
+            {
+                node->right = insertRec(node->right, key, node, inserted);
+                result = Node::balance(node);
+            }
+            catch (...)
+            {
+                node->right = old_right;
+                inserted = false;
+                throw;
+            }
         }
         else
         {
             inserted = false;
-            return node;
         }
 
-        return Node::balance(node);
+        return result;
     }
 
     static void dumpNode(std::ostream& os, const Node* node)
@@ -189,6 +226,8 @@ public:
     void clear()
     {
         Node::clearRec(root);
+        root = nullptr;
+        min_node = nullptr;
     }
 
     MyTree() : root(nullptr), min_node(nullptr), comp_()
@@ -283,7 +322,7 @@ public:
     }
 
     // 5.
-    ~MyTree()
+    ~MyTree() noexcept
     {
         Node::clearRec(root);
     }

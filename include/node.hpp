@@ -105,13 +105,28 @@ template <typename KeyT> struct Node
         return node;
     }
 
-    static void clearRec(Node* node)
+    static void rollbackDelete(Node* node) noexcept
+    {
+        if (!node)
+            return;
+
+        rollbackDelete(node->left);
+        rollbackDelete(node->right);
+
+        try
+        {
+            delete node;
+        }
+        catch (...)
+        {
+        }
+    }
+    static void clearRec(Node*& node) noexcept
     {
         while (node)
         {
             if (node->left)
             {
-
                 Node* predecessor = node->left;
                 while (predecessor->right && predecessor->right != node)
                 {
@@ -120,22 +135,17 @@ template <typename KeyT> struct Node
 
                 if (!predecessor->right)
                 {
-
                     predecessor->right = node;
-                    Node* temp = node;
                     node = node->left;
-                    temp->left = nullptr;
                 }
                 else
                 {
-
                     predecessor->right = nullptr;
                     Node* to_delete = node;
                     node = node->right;
                     delete to_delete;
                 }
             }
-
             else
             {
                 Node* to_delete = node;
